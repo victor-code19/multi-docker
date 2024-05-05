@@ -1,47 +1,29 @@
-version: '3.8'
+version: "3.8"
 services:
-  postgres:
-    image: 'postgres:latest'
-    environment:
-      - POSTGRES_PASSWORD=password
-  redis-server:
-    image: 'redis'
-  api:
-    build:
-      dockerfile: Dockerfile.dev
-      context: ./server
-    volumes:
-      - /app/node_modules
-      - ./server:/app
-    environment:
-      - REDIS_URL=redis://redis-server:6379
-      - PGUSER=postgres
-      - PGHOST=postgres
-      - PGDATABASE=postgres
-      - PGPASSWORD=password
-      - PGPORT=5432
   client:
-    build:
-      dockerfile: Dockerfile.dev
-      context: ./client
-    volumes:
-      - /app/node_modules
-      - ./client:/app
+    image: "victor0719/multi-client"
+    mem_limit: 128m
+    hostname: client
+  server:
+    image: "victor0719/multi-server"
+    mem_limit: 128m
+    hostname: api
     environment:
-      - WDS_SOCKET_PORT=0
+      - REDIS_URL=$REDIS_URL
+      - PGUSER=$PGUSER
+      - PGHOST=$PGHOST
+      - PGDATABASE=$PGDATABASE
+      - PGPASSWORD=$PGPASSWORD
+      - PGPORT=$PGPORT
   worker:
+    image: "victor0719/multi-worker"
+    mem_limit: 128m
+    hostname: worker
     environment:
-      - REDIS_URL=redis://redis-server:6379
-    build:
-      dockerfile: Dockerfile.dev
-      context: ./worker
-    volumes:
-      - /app/node_modules
-      - ./worker:/app
+      - REDIS_URL=$REDIS_URL
   nginx:
-    restart: always
-    build:
-      dockerfile: Dockerfile.dev
-      context: ./nginx
+    image: "victor0719/multi-nginx"
+    mem_limit: 128m
+    hostname: nginx
     ports:
-      - '3050:80'
+      - "80:80"
